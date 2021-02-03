@@ -1,0 +1,336 @@
+﻿@page "/Clientes"
+@model ClientesModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+
+    <div class="topbar">
+        <div><h6>Cadastro de Clientes</h6></div>
+        <div>@Model.Registros cadastrados</div>
+        <div style="display:grid;grid-template-columns:10% 90%">
+            <span style="padding:5px;">
+                    <i class="fas fa-search"></i>
+            </span>
+            <span>
+                <input type="text" onkeyup="Search('Clientes', this.value, 1, 1)" />
+            </span>
+        </div>
+        <div>
+            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#ClienteModal">
+                <i class="fas fa-plus fa-xs"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <div style="height:460px;overflow-y:scroll;overflow-x:hidden;margin-top:5px;">
+        <table class="table" id="Clientes">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Contato</th>
+                    <th>Fone</th>
+                    <th>Açoes</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in @Model.Clientes)
+                {
+                    <tr>
+                        <td>@c.NomeCliente</td>
+                        <td>@c.NomeContato</td>
+                        <td>@c.TelefoneContato</td>
+                        <td>
+
+                            <button type="button"
+                                    class="btn btn-info btn-sm"
+                                    data-toggle="modal"
+                                    data-target="#exampleModalLong"
+                                    onclick="GetClientById(@c.Id,'#ExclueModal')">
+                                <i class="fas fa-trash fa-xs"></i>
+                            </button>
+                            <button id="SaveBtn"
+                                    type="button"
+                                    class="btn btn-info btn-sm"
+                                    data-toggle="modal"
+                                    data-target="#exampleModalLong"
+                                    onclick="GetClientById(@c.Id,'#ClienteModal')">
+                                <i class="fas fa-pen fa-xs"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- Cliente Modal serve para incluir e alterar-->
+    <div class="modal fade " id="ClienteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ClienteModalTitle">Novo Cliente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body ">
+                    <div>
+                        <form>
+                            <div id="clienteId" class="hidden"></div>
+                            <div class="row p-2">
+                                <div style="width:70%">
+                                    <label for="nome">Nome</label>
+                                    <input type="text" class="form-control" value="" id="nome" placeholder="Nome do cliente">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tipo">Tipo</label>
+                                    <input type="text" class="form-control" value="" id="tipo" placeholder="Tipo do cliente">
+                                </div>
+                            </div>
+                            <div class="row p-2">
+                                <div class="form-group" style="width:70%">
+                                    <label for="contato">Contato</label>
+                                    <input type="text" class="form-control" value="" id="contato" placeholder="Nome do contato">
+                                </div>
+                                <div class="form-group">
+                                    <label for="fone">Fone</label>
+                                    <input type="text" class="form-control" value="" id="fone" placeholder="Fone  do contato">
+                                </div>
+                            </div>
+
+                            <div class="row p-2">
+                                <div class="form-group" style="width:90%">
+                                    <label for="rua">Logradouro</label>
+                                    <input type="text" class="form-control" value="" id="rua" placeholder="Nome do contato">
+                                </div>
+
+                            </div>
+                            <div class="row p-2">
+                                <div class="form-group" style="width:60%">
+                                    <label for="bairro">Bairro</label>
+                                    <input type="text" class="form-control" value="" id="bairro" placeholder="Bairro">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bairro">Cidade</label>
+                                    <input type="text" class="form-control" value="" id="cidade" placeholder="Cidade">
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" onclick="Salvar()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Confirma Exclusão Modal  -->
+    <div class="modal fade " id="ExclueModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ExclueModalTitle">Novo Cliente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body ">
+                    <h5>Confirma exclusão?</h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Não</button>
+                    <button type="button" class="btn btn-danger" onclick="DeleteClient()">Sim</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Search = (tablename, text, start, end) =>  {
+            var table, td;
+            table = document.getElementById(tablename);
+            for (var i = 0; i < table.rows.length; i++) {
+                var s = false;
+                for (var c = start; c <= end; c++) {
+                    var content = table.rows[i].cells[c].innerHTML;
+                    if (content.indexOf(text) >= 0) {
+                        s = true;
+                        break;
+                    }
+                }
+                if (s) {
+                    table.rows[i].style.display = '';
+                }
+                else {
+                    table.rows[i].style.display = 'none';
+                }
+
+            }
+        }
+        Salvar = () => {
+
+            let id = $("#clienteId").html();
+
+            if (id.length == 0) {
+                NovoCliente();
+            }
+            else {
+
+                var cliente = FormToData();
+
+                AlterarCliente(cliente)
+            }
+
+        }
+        NovoCliente = () => {
+
+            let nome = $("#nome").val();
+            let tipo = $("#tipo").val();
+            let contato = $("#contato").val();
+            let fone = $("#fone").val();
+            let rua = $("#rua").val();
+            let bairro = $("#bairro").val();
+            let cidade = $("#cidade").val();
+            if (nome.length < 1) {
+
+                alert("Pof favor informe Nome do Cliente");
+            }
+            else {
+                $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: '/Cliente/NovoCliente',
+                    data: {
+                        "nome": nome,
+                        "tipo": tipo,
+                        "contato": contato,
+                        "fone": fone,
+                        "rua": rua,
+                        "bairro": bairro,
+                        "cidade": cidade
+                    },
+                    success: function (data) {
+
+                        window.setTimeout('location.reload()', 500);
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                    }
+                });
+
+            }
+
+        }
+        GetClientById = (id, mdl) => {
+          
+            if (id > 0) {
+                $.ajax({
+                    cache: false,
+                    type: "GET",
+                    url: '/Cliente/GetById',
+                    data: {
+                        "id": id
+                    },
+                    success: function (data) {
+                        $("#clienteId").html(id);
+                        console.log(mdl);
+                        switch (mdl) {
+                            case "#ClienteModal":
+                               
+                                DataToForm(data);
+                                $(mdl).modal('show');
+                                break;
+
+                            case "#ExclueModal":
+                                $(mdl).modal('show');
+                                break;
+                            default:
+                                alert('erro');
+                        }
+                       
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert('erro');
+                    }
+                });
+            }
+
+        }
+        AlterarCliente = (cliente) => {
+
+            if (cliente.Id > 0) {
+                $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: '/Cliente/AlterarCliente',
+                    data: {
+                        "cliente": cliente,
+                    },
+                    success: function (data) {
+
+                        window.setTimeout('location.reload()', 500);
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                    }
+                });
+
+            }
+            else {
+                console.log('não achei');
+            }
+        }
+        DeleteClient = () => {
+            let id = $("#clienteId").html();
+            if (id > 0) {
+
+                $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: '/Cliente/ExclueCliente',
+                    data: {
+                        "id": id
+                    },
+                    success: function (data) {
+                        window.setTimeout('location.reload()', 500);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert('erro');
+                    }
+                });
+            }
+        }
+        DataToForm = (data) => {
+
+            $("#ClienteModalTitle").html("Alterar dados do Cliente");
+            $("#nome").val(data.nomeCliente);
+            $("#tipo").val(data.tipoCliente);
+            $("#contato").val(data.nomeContato);
+            $("#fone").val(data.telefoneContato);
+            $("#rua").val(data.logradouro);
+            $("#bairro").val(data.bairro);
+            $("#cidade").val(data.cidade);
+
+        }
+        FormToData = () => {
+            let cliente = {
+                Id: $("#clienteId").html(),
+                NomeCliente: $("#nome").val(),
+                TipoCliente: $("#tipo").val(),
+                NomeContato: $("#contato").val(),
+                TelefoneContato: $("#fone").val(),
+                Logradouro: $("#rua").val(),
+                Bairro: $("#bairro").val(),
+                Cidade: $("#cidade").val()
+            }
+            return cliente;
+        }
+
+
+    </script>
